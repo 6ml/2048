@@ -49,6 +49,14 @@ module.exports = {
       }
     ]
   },
+  resolve: {
+    // 自动扩展文件后缀名
+    extensions: ['.js', '.json', '.scss'],
+    // 模块别名定义
+    alias: {
+
+    }
+  },
   plugins: [
     // new webpack.optimize.OccurenceOrderPlugin(),
     new HtmlWebpackPlugin({
@@ -64,7 +72,7 @@ module.exports = {
         'NODE_ENV': "'production'"
       }
     }),
-    new webpack.optimize.UglifyJsPlugin({optimize: true,compress:{warnings:false,drop_console:true}}),
+    new webpack.optimize.UglifyJsPlugin({optimize: true,compress:{warnings:false, drop_debugger: true, drop_console: true}}),
     new ExtractTextPlugin('css/style.css')
   ]
 };
