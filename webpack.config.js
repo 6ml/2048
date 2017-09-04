@@ -19,20 +19,18 @@ module.exports = {
     filename: 'js/[name].[hash].js'
   },
   module: {
-    loaders: [
-      // js
+    rules: [
+      // JS
       {
         test: /\.js$/,
         loaders: ['babel-loader'],
         include: path.join(__dirname, 'client')
       },
-      //img
+      // img
       {
         test: /\.(png|jpg|jpeg|gif)$/,
         loader: 'url-loader?limit=8192'
-      }
-    ],
-    rules: [
+      },
       // CSS
       {
         test: /\.scss$/,
@@ -66,7 +64,7 @@ module.exports = {
         'NODE_ENV': "'production'"
       }
     }),
-    // new webpack.optimize.UglifyJsPlugin({optimize: true,compress:{warnings:false,drop_console:true}}),
+    new webpack.optimize.UglifyJsPlugin({optimize: true,compress:{warnings:false,drop_console:true}}),
     new ExtractTextPlugin('css/style.css')
   ]
 };
