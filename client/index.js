@@ -5,9 +5,9 @@ var score = 0;
 window.onload = () => {
     var canvas = document.createElement('canvas');
 
-    document.getElementById('root').appendChild(canvas);
-
     canvas.id = 'canvas';
+
+    document.getElementById('root').appendChild(canvas);
 
     if (canvas.getContext('2d')) {
         var context = canvas.getContext('2d');
@@ -18,20 +18,7 @@ window.onload = () => {
     canvas.width = 520;
     canvas.height = 520;
 
-    context.beginPath();
-    context.lineJoin = 'round';
-    context.moveTo(15, 15);
-    context.lineTo(505, 15);
-    context.lineTo(505, 505);
-    context.lineTo(15, 505);
-    context.lineTo(15, 15);
-    context.lineWidth = 10;
-    context.strokeStyle = '#bbada0';
-    context.fillStyle = '#bbada0';
-
-    context.stroke();
-    context.fill();
-    context.closePath();
+    renderBg(context);
 
     var cellArr = [];
     for (var i = 0; i < 4; i++) {
@@ -43,7 +30,9 @@ window.onload = () => {
                 left: 35 + j * (100 + 20),
                 top: 35 + i * (100 + 20),
                 right: 125 + j * (100 + 20),
-                bottom: 125 + i * (100 + 20)
+                bottom: 125 + i * (100 + 20),
+                alpha: 1,
+                animation: false
             };
         }
     }
@@ -75,6 +64,23 @@ window.onload = () => {
     });
 };
 
+function renderBg (cxt) {
+    cxt.beginPath();
+    cxt.lineJoin = 'round';
+    cxt.moveTo(15, 15);
+    cxt.lineTo(505, 15);
+    cxt.lineTo(505, 505);
+    cxt.lineTo(15, 505);
+    cxt.lineTo(15, 15);
+    cxt.lineWidth = 10;
+    cxt.strokeStyle = '#bbada0';
+    cxt.fillStyle = '#bbada0';
+
+    cxt.stroke();
+    cxt.fill();
+    cxt.closePath();
+}
+
 function move(direction, arr) {
     var _isRender = [],
         _needSort,
@@ -92,7 +98,7 @@ function move(direction, arr) {
     case 'right':
         arr = arr.map(function(col) {
             _needSort = sort(col.reverse());
-            _canMerge  = merge(col);
+            _canMerge  = merge(col, arr);
             _isRender.push(!_needSort && !_canMerge ? false : true);
             return col.reverse();
         });
@@ -102,7 +108,7 @@ function move(direction, arr) {
         arr = changeDirection(arr);
         arr = arr.map(function(col) {
             _needSort = sort(col);
-            _canMerge  = merge(col);
+            _canMerge  = merge(col, arr);
             _isRender.push(!_needSort && !_canMerge ? false : true);
             return col;
         });
@@ -113,7 +119,7 @@ function move(direction, arr) {
         arr = changeDirection(arr);
         arr = arr.map(function(col) {
             _needSort = sort(col.reverse());
-            _canMerge  = merge(col);
+            _canMerge  = merge(col, arr);
             _isRender.push(!_needSort && !_canMerge ? false : true);
             return col.reverse();
         });
@@ -131,6 +137,7 @@ function add(a, b) {
 
 function changeDirection(arr) {
     var temp,
+        animation,
         res = arr.map(function(item) {
             return item;
         });
@@ -140,6 +147,9 @@ function changeDirection(arr) {
             temp = arr[j][i].number;
             arr[j][i].number = res[i][j].number;
             res[i][j].number = temp;
+            animation = arr[j][i].animation;
+            arr[j][i].animation = res[i][j].animation;
+            res[i][j].animation = animation;
         }
     }
 
@@ -166,19 +176,49 @@ function sort(arr) {
     return _needSort;
 }
 
-function merge(arr) {
+function animation(obj, arr) {
+    var _obj = JSON.parse(JSON.stringify(obj));
+    new Promise(function(resolve) {
+        var timer = setInterval(function() {
+            var cxt = obj.cxt;
+            cxt.clearRect(obj.left - 5, obj.top - 5, obj.right - obj.left + 10, obj.bottom - obj.top + 10);
+            obj.left--;
+            obj.top--;
+            obj.right++;
+            obj.bottom++;
+            obj.alpha -= 0.01;
+            drawCell(obj);
+            if(obj.right - _obj.right >= 10) {
+                clearInterval(timer);
+                obj.left = _obj.left;
+                obj.right = _obj.right;
+                obj.top = _obj.top;
+                obj.bottom = _obj.bottom;
+                obj.alpha = _obj.alpha;
+                obj.animation = !_obj.animation;
+                obj.cxt.globalAlpha = obj.alpha;
+                resolve();
+            }
+        }, 10);
+    }).then(function() {
+        update(arr);
+    });
+}
+
+function merge(col) {
     var _canMerge = false;
 
-    for(var i = 0; i < arr.length; i++) {
+    for(var i = 0; i < col.length; i++) {
         var _isEqual = false;
-        _isEqual = arr[i + 1] && (arr[i].number === arr[i + 1].number) && arr[i].number;
+        _isEqual = col[i + 1] && (col[i].number === col[i + 1].number) && col[i].number;
         if(_isEqual) {
-            arr[i].number *= 2;
-            score += arr[i].number;
-            arr[i + 1].number = 0;
+            col[i].number *= 2;
+            score += col[i].number;
+            col[i].animation = true;
+            col[i + 1].number = 0;
             _canMerge = true;
 
-            sort(arr);
+            sort(col);
             i++;
         }
     }
@@ -199,7 +239,11 @@ function render (arr) {
 
     arr.forEach(function(col) {
         col.forEach(function(item) {
-            drawCell(item);
+            if(item.animation) {
+                animation(item, arr);
+            } else{
+                drawCell(item);
+            }
         });
     });
 
@@ -208,31 +252,45 @@ function render (arr) {
     }
 }
 
+function update (arr) {
+    var cxt = arr[0][0].cxt;
+    cxt.clearRect(0, 0, 520, 520);
+    renderBg(cxt);
+
+    arr.forEach(function(col) {
+        col.forEach(function(item) {
+            drawCell(item);
+        });
+    });
+}
+
 
 function drawCell(cellObj) {
+    var cxt = cellObj.cxt;
     cellObj.color = getNumberBackgroundColor(cellObj.number);
 
-    cellObj.cxt.lineWidth = 10;
-    cellObj.cxt.strokeStyle = cellObj.color;
-    cellObj.cxt.fillStyle = cellObj.color;
+    cxt.lineWidth = 10;
+    cxt.strokeStyle = cellObj.color;
+    cxt.fillStyle = cellObj.color;
 
-    cellObj.cxt.beginPath();
-    cellObj.cxt.moveTo(cellObj.left, cellObj.top);
-    cellObj.cxt.lineTo(cellObj.right, cellObj.top);
-    cellObj.cxt.lineTo(cellObj.right, cellObj.bottom);
-    cellObj.cxt.lineTo(cellObj.left, cellObj.bottom);
-    cellObj.cxt.lineTo(cellObj.left, cellObj.top);
+    cxt.beginPath();
+    cxt.moveTo(cellObj.left, cellObj.top);
+    cxt.lineTo(cellObj.right, cellObj.top);
+    cxt.lineTo(cellObj.right, cellObj.bottom);
+    cxt.lineTo(cellObj.left, cellObj.bottom);
+    cxt.lineTo(cellObj.left, cellObj.top);
+    cxt.globalAlpha = cellObj.alpha;
 
-    cellObj.cxt.stroke();
-    cellObj.cxt.fill();
+    cxt.stroke();
+    cxt.fill();
 
-    cellObj.cxt.font = getNumberSize(cellObj.number) + 'px arial bolder';
-    cellObj.cxt.textAlign = 'center';
-    cellObj.cxt.textBaseline = 'middle';
-    cellObj.cxt.fillStyle = getNumberColor(cellObj.number);
+    cxt.font = getNumberSize(cellObj.number) + 'px arial bolder';
+    cxt.textAlign = 'center';
+    cxt.textBaseline = 'middle';
+    cxt.fillStyle = getNumberColor(cellObj.number);
 
-    cellObj.cxt.fillText(cellObj.number, (cellObj.left + cellObj.right) / 2, (cellObj.top + cellObj.bottom) / 2);
-    cellObj.cxt.closePath();
+    cxt.fillText(cellObj.number, (cellObj.left + cellObj.right) / 2, (cellObj.top + cellObj.bottom) / 2);
+    cxt.closePath();
 }
 
 function getNumberBackgroundColor(number) {
