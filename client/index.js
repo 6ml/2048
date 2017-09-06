@@ -10,19 +10,34 @@ window.onload = () => {
 
     if (canvas.getContext('2d')) {
         var context = canvas.getContext('2d');
+        window.localStorage.setItem('context', context);
     } else {
         alert('您的浏览器不支持 Canvas 的浏览，请升级您的浏览器或者更换更高级的浏览器已达到最好的浏览效果！');
     }
 
     Object.defineProperty(window, 'score', {
         get: function() {
-            return this._score || 0;
+            return this._score || +window.localStorage.getItem('score') || 0;
         },
         set: function(val) {
             this._score = val;
+            window.localStorage.setItem('score', val);
             document.getElementById('score').innerHTML = val;
         }
     });
+
+    Object.defineProperty(window, 'highestScore', {
+        get: function() {
+            return this._highestScore || +window.localStorage.getItem('highestScore') || 0;
+        },
+        set: function(val) {
+            this._highestScore = val;
+            window.localStorage.setItem('highestScore', val);
+            document.getElementById('highestScore').innerHTML = val;
+        }
+    });
+
+    window.highestScore = +window.localStorage.getItem('highestScore') || 0;
 
     document.getElementById('score').innerHTML = window.score;
 
@@ -31,7 +46,32 @@ window.onload = () => {
 
     renderBg(context);
 
-    var cellArr = [];
+    var cellArr = initArr(context);
+
+    addEvent(document.documentElement, 'keydown', throttle(handleKeyDown, 70, 150, cellArr));
+
+    addEvent(document.getElementById('restart'), 'click', function() {
+        restart(cellArr);
+    });
+};
+
+function initArr(context) {
+    var cellArr = [],
+        localData = window.localStorage.getItem('data');
+
+    if(localData) {
+        cellArr = JSON.parse(localData);
+        for(var i = 0; i < cellArr.length; i++) {
+            for(var j = 0; j < cellArr[i].length; j++) {
+                cellArr[i][j].cxt = context;
+                cellArr[i][j].animation = false;
+            }
+        }
+        draw(cellArr);
+
+        return cellArr;
+    }
+
     for (var i = 0; i < 4; i++) {
         cellArr[i] = [];
         for (var j = 0; j < 4; j++) {
@@ -47,11 +87,10 @@ window.onload = () => {
             };
         }
     }
-
     render(cellArr);
 
-    addEvent(document.documentElement, 'keydown', throttle(handleKeyDown, 50, 120, cellArr));
-};
+    return cellArr;
+}
 
 function handleKeyDown (event, arr) {
     var e = event || window.event;
@@ -95,7 +134,7 @@ function renderBg (cxt) {
 }
 
 function move(direction, arr) {
-    var _isRender = [],
+    var _shouldRender = [],
         _needSort,
         _canMerge;
     switch (direction) {
@@ -103,41 +142,41 @@ function move(direction, arr) {
         arr = arr.map(function(col) {
             _needSort = sort(col);
             _canMerge  = merge(col);
-            _isRender.push(!_needSort && !_canMerge ? false : true);
+            _shouldRender.push(!_needSort && !_canMerge ? false : true);
             return col;
         });
-        _isRender.reduce(add) && render(arr);
+        _shouldRender.reduce(add) && render(arr);
         break;
     case 'right':
         arr = arr.map(function(col) {
             _needSort = sort(col.reverse());
             _canMerge  = merge(col, arr);
-            _isRender.push(!_needSort && !_canMerge ? false : true);
+            _shouldRender.push(!_needSort && !_canMerge ? false : true);
             return col.reverse();
         });
-        _isRender.reduce(add) && render(arr);
+        _shouldRender.reduce(add) && render(arr);
         break;
     case 'top':
         arr = changeDirection(arr);
         arr = arr.map(function(col) {
             _needSort = sort(col);
             _canMerge  = merge(col, arr);
-            _isRender.push(!_needSort && !_canMerge ? false : true);
+            _shouldRender.push(!_needSort && !_canMerge ? false : true);
             return col;
         });
         arr = changeDirection(arr);
-        _isRender.reduce(add) && render(arr);
+        _shouldRender.reduce(add) && render(arr);
         break;
     case 'bottom':
         arr = changeDirection(arr);
         arr = arr.map(function(col) {
             _needSort = sort(col.reverse());
             _canMerge  = merge(col, arr);
-            _isRender.push(!_needSort && !_canMerge ? false : true);
+            _shouldRender.push(!_needSort && !_canMerge ? false : true);
             return col.reverse();
         });
         arr = changeDirection(arr);
-        _isRender.reduce(add) && render(arr);
+        _shouldRender.reduce(add) && render(arr);
         break;
     default:
         break;
@@ -185,8 +224,6 @@ function sort(arr) {
             }
         }
     }
-
-    // merge(arr);
 
     return _needSort;
 }
@@ -250,7 +287,10 @@ function addEvent(obj, type, fn) {
 
 function render (arr) {
     init(arr);
+    draw(arr);
+}
 
+function draw(arr) {
     arr.forEach(function(col) {
         col.forEach(function(item) {
             if(item.animation) {
@@ -261,8 +301,11 @@ function render (arr) {
         });
     });
 
+    window.localStorage.setItem('data', JSON.stringify(arr));
+
     if(isOver(arr)) {
         alert('over');
+        restart(arr);
     }
 }
 
@@ -421,6 +464,10 @@ function isOver(arr) {
         }
     }
 
+    if(_isOver && window.score > window.highestScore) {
+        window.highestScore = window.score;
+    }
+
     return _isOver;
 }
 
@@ -444,4 +491,16 @@ function throttle(fn, delay, atLeast) {
             })(args);
         }
     };
+}
+
+function restart(arr) {
+    for(var i = 0; i < arr.length; i++) {
+        for(var j = 0; j < arr[i].length; j++) {
+            arr[i][j].number = 0;
+        }
+    }
+
+    window.score = 0;
+
+    render(arr);
 }
