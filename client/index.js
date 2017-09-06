@@ -1,6 +1,5 @@
 import 'normalize.css';
-
-var score = 0;
+import './css/index.css';
 
 window.onload = () => {
     var canvas = document.createElement('canvas');
@@ -14,6 +13,18 @@ window.onload = () => {
     } else {
         alert('您的浏览器不支持 Canvas 的浏览，请升级您的浏览器或者更换更高级的浏览器已达到最好的浏览效果！');
     }
+
+    Object.defineProperty(window, 'score', {
+        get: function() {
+            return this._score || 0;
+        },
+        set: function(val) {
+            this._score = val;
+            document.getElementById('score').innerHTML = val;
+        }
+    });
+
+    document.getElementById('score').innerHTML = window.score;
 
     canvas.width = 520;
     canvas.height = 520;
@@ -39,30 +50,32 @@ window.onload = () => {
 
     render(cellArr);
 
-    addEvent(document.documentElement, 'keydown', function (event) {
-        var e = event || window.event;
-        var keyCode = e.keyCode || e.which;
-
-        switch (keyCode) {
-
-        case 37:
-            move('left', cellArr);
-            break;
-        case 38:
-            move('top', cellArr);
-            break;
-        case 39:
-            move('right', cellArr);
-            break;
-        case 40:
-            move('bottom', cellArr);
-            break;
-        default:
-            break;
-
-        }
-    });
+    addEvent(document.documentElement, 'keydown', throttle(handleKeyDown, 50, 120, cellArr));
 };
+
+function handleKeyDown (event, arr) {
+    var e = event || window.event;
+    var keyCode = e.keyCode || e.which;
+
+    switch (keyCode) {
+
+    case 37:
+        move('left', arr);
+        break;
+    case 38:
+        move('top', arr);
+        break;
+    case 39:
+        move('right', arr);
+        break;
+    case 40:
+        move('bottom', arr);
+        break;
+    default:
+        break;
+
+    }
+}
 
 function renderBg (cxt) {
     cxt.beginPath();
@@ -173,6 +186,8 @@ function sort(arr) {
         }
     }
 
+    // merge(arr);
+
     return _needSort;
 }
 
@@ -213,13 +228,12 @@ function merge(col) {
         _isEqual = col[i + 1] && (col[i].number === col[i + 1].number) && col[i].number;
         if(_isEqual) {
             col[i].number *= 2;
-            score += col[i].number;
+            window.score += col[i].number;
             col[i].animation = true;
             col[i + 1].number = 0;
             _canMerge = true;
 
             sort(col);
-            i++;
         }
     }
 
@@ -367,16 +381,10 @@ function init(arr) {
     var first = Math.floor(Math.random() * 4);
     var second = Math.floor(Math.random() * 4);
     if(arr[first][second].number === 0) {
-        if(Math.random() < 0.5) {
-            arr[first][second].number = 2;
-        } else {
-            arr[first][second].number = 4;
-        }
+        arr[first][second].number = Math.random() > 0.9 ? 4 : 2;
     } else {
         return init(arr);
     }
-
-
 }
 
 function judgeFull(arr) {
@@ -414,4 +422,26 @@ function isOver(arr) {
     }
 
     return _isOver;
+}
+
+function throttle(fn, delay, atLeast) {
+    var timeout = null,
+        startTime = Date.now(),
+        args = Array.prototype.slice.call(arguments, 3);
+
+    return function (event) {
+        var endTime = Date.now();
+        clearTimeout(timeout);
+
+        if(endTime - startTime >= atLeast) {
+            fn.apply(null, [event].concat(args));
+            startTime = endTime;
+        } else {
+            (function(event, args) {
+                timeout = setTimeout(function() {
+                    fn.apply(null, [event].concat(args));
+                }, delay);
+            })(args);
+        }
+    };
 }
