@@ -16,7 +16,8 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'js/[name].[hash].js'
+    filename: 'js/[name].[hash].js',
+    // publicPath: './dist'
   },
   module: {
     rules: [
@@ -29,7 +30,7 @@ module.exports = {
       // img
       {
         test: /\.(png|jpg|jpeg|gif)$/,
-        loader: 'url-loader?limit=8192'
+        loader: 'url-loader?limit=8192&name=images/[hash:8].[name].[ext]'
       },
       // CSS
       {
@@ -37,7 +38,8 @@ module.exports = {
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           //resolve-url-loader may be chained before sass-loader if necessary
-          use: ['css-loader', 'sass-loader']
+          use: ['css-loader', 'sass-loader'],
+          publicPath: '../'
         })
       },
       {
@@ -60,7 +62,7 @@ module.exports = {
   plugins: [
     // new webpack.optimize.OccurenceOrderPlugin(),
     new HtmlWebpackPlugin({
-      title: '首页',
+      title: '2048 Games',
       template: path.resolve(TEMPLATE_PATH,'index.html'),
       filename: 'index.html',
       chunks: ['index'],
