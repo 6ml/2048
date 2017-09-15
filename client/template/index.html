@@ -7,13 +7,21 @@
 </head>
 <body>
     <section class="container">
-        <header>
+        <header class="header clearfix">
             <p class="logo">2048</p>
-            <div class="score">score: <span id="score"></span></div>
-            <div class="highestScore"><span id="highestScore"></span></div>
-            <button id="restart">restart</button>
+            <div id="highestScore"></div>
+            <div id="score"></div>
         </header>
+        <div class="operation clearfix">
+            <p class="description">Merge it to get 2048!</p>
+            <a id="rank">Ranking</a>
+            <a id="restart">Restart</a>
+        </div>
         <div id="root"></div>
+        <div class="tips">
+            <p class="tips-pc"><strong>HOW TO PLAY</strong>: Use your <strong>arrow keys</strong> to move the tiles. When two tiles with the same number touch, they <strong>merge into one</strong>!</p>
+            <p class="tips-mobile"><strong>HOW TO PLAY</strong>: Use your <strong>finger</strong> to move the tiles. When two tiles with the same number touch, they <strong>merge into one</strong>!</p>
+        </div>
     </section>
 </body>
 </html>

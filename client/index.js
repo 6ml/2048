@@ -1,5 +1,6 @@
 import 'normalize.css';
-import './css/index.css';
+import './css/index.scss';
+const touch = require('touchjs');
 
 window.onload = () => {
     var canvas = document.createElement('canvas');
@@ -48,12 +49,86 @@ window.onload = () => {
 
     var cellArr = initArr(context);
 
-    addEvent(document.documentElement, 'keydown', throttle(handleKeyDown, 70, 150, cellArr));
+    if(isPC()) {
 
-    addEvent(document.getElementById('restart'), 'click', function() {
-        restart(cellArr);
-    });
+        // PC端事件绑定
+        addEvent(document.documentElement, 'keydown', throttle(handleKeyDown, 70, 150, cellArr));
+
+        addEvent(document.getElementById('restart'), 'click', function() {
+            restart(cellArr);
+        });
+    } else {
+
+        // 移动端事件绑定
+        touch.on(document.getElementById('canvas'), 'swipeleft', function(ev) {
+            move('left', cellArr);
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(document.getElementById('canvas'), 'swiperight', function(ev) {
+            move('right', cellArr);
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(document.getElementById('canvas'), 'swipeup', function(ev) {
+            move('top', cellArr);
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(document.getElementById('canvas'), 'swipedown', function(ev) {
+            move('bottom', cellArr);
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(window, 'swipe', function(ev) {
+            event.preventDefault();
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(document.documentElement, 'swipe', function(ev) {
+            event.preventDefault();
+            ev.originEvent.preventDefault();
+        });
+
+        touch.on(document.getElementById('restart'), 'tap', function() {
+            restart(cellArr);
+        });
+    }
 };
+
+
+function isPC() {
+    var system = {
+        win: false,
+        mac: false,
+        xll: false
+    };
+    //检测平台
+    var p = navigator.platform;
+    system.win = p.indexOf('Win') == 0;
+    system.mac = p.indexOf('Mac') == 0;
+    system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);
+    //跳转语句
+    if (system.win || system.mac || system.xll) {
+        return true; //是电脑
+    } else {
+        return false; //是手机
+    }
+}
+
+function isMobile() {  
+    var regex_match = /(nokia|iphone|android|motorola|^mot-|softbank|foma|docomo|kddi|up.browser|up.link|htc|dopod|blazer|netfront|helio|hosin|huawei|novarra|CoolPad|webos|techfaith|palmsource|blackberry|alcatel|amoi|ktouch|nexian|samsung|^sam-|s[cg]h|^lge|ericsson|philips|sagem|wellcom|bunjalloo|maui|symbian|smartphone|midp|wap|phone|windows ce|iemobile|^spice|^bird|^zte-|longcos|pantech|gionee|^sie-|portalmmm|jigs browser|hiptop|^benq|haier|^lct|operas*mobi|opera*mini|320x320|240x320|176x220)/i;  
+    var u = navigator.userAgent;  
+    if (null == u) {  
+        return true;  
+    }  
+    var result = regex_match.exec(u);  
+    if (null == result) {  
+        return false;
+    } else {  
+        return true;
+    }  
+} 
 
 function initArr(context) {
     var cellArr = [],
@@ -100,20 +175,29 @@ function handleKeyDown (event, arr) {
 
     case 37:
         move('left', arr);
+        e.preventDefault();
+        e.returnValue = false;
         break;
     case 38:
         move('top', arr);
+        e.preventDefault();
+        e.returnValue = false;
         break;
     case 39:
         move('right', arr);
+        e.preventDefault();
+        e.returnValue = false;
         break;
     case 40:
         move('bottom', arr);
+        e.preventDefault();
+        e.returnValue = false;
         break;
     default:
         break;
 
     }
+    
 }
 
 function renderBg (cxt) {
