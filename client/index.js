@@ -6,15 +6,17 @@ import touch from 'touchjs';
 
 window.onload = () => {
     // 创建 Canvas 并插入到 DOM 中
-    var canvas = document.createElement('canvas');
+    let canvas = document.createElement('canvas');
     canvas.id = 'canvas';
     document.getElementById('root').appendChild(canvas);
     canvas.width = 520;
     canvas.height = 520;
 
+    let context;
+
     // 获取 context
     if (canvas.getContext('2d')) {
-        var context = canvas.getContext('2d');
+        context = canvas.getContext('2d');
         window.localStorage.setItem('context', context);
     } else {
         alert('您的浏览器不支持 Canvas 的浏览，请升级您的浏览器或者更换更高级的浏览器已达到最好的浏览效果！');
@@ -52,7 +54,7 @@ window.onload = () => {
     renderBg(context);
 
     // 初始化 canvas 数据
-    var cellArr = initArr(context);
+    let cellArr = initArr(context);
 
     // 判断是桌面端还是手机端，绑定对应事件
     if(isPC()) {

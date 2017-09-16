@@ -1,12 +1,12 @@
 // 初始化 canvas 数据
 export function initArr(context) {
-    var cellArr = [],
+    let cellArr = [],
         localData = window.localStorage.getItem('data');
 
     if(localData) {
         cellArr = JSON.parse(localData);
-        for(var i = 0; i < cellArr.length; i++) {
-            for(var j = 0; j < cellArr[i].length; j++) {
+        for(let i = 0; i < cellArr.length; i++) {
+            for(let j = 0; j < cellArr[i].length; j++) {
                 cellArr[i][j].cxt = context;
                 cellArr[i][j].animation = false;
             }
@@ -16,9 +16,9 @@ export function initArr(context) {
         return cellArr;
     }
 
-    for (var i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
         cellArr[i] = [];
-        for (var j = 0; j < 4; j++) {
+        for (let j = 0; j < 4; j++) {
             cellArr[i][j] = {
                 cxt: context,
                 number: 0,
@@ -38,8 +38,8 @@ export function initArr(context) {
 
 // keydown 事件处理程序
 export function handleKeyDown (event, arr) {
-    var e = event || window.event;
-    var keyCode = e.keyCode || e.which;
+    let e = event || window.event;
+    let keyCode = e.keyCode || e.which;
 
     switch (keyCode) {
 
@@ -90,7 +90,7 @@ export function renderBg (cxt) {
 
 // 移动 -> 合并
 export function move(direction, arr) {
-    var _shouldRender = [],
+    let _shouldRender = [],
         _needSort,
         _canMerge;
     switch (direction) {
@@ -146,14 +146,14 @@ function add(a, b) {
 
 // 改变二维数组方向
 function changeDirection(arr) {
-    var temp,
+    let temp,
         animation,
         res = arr.map((item) => {
             return item;
         });
 
-    for(var i = 0; i < arr.length; i++) {
-        for(var j = 0; j < i; j++) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < i; j++) {
             temp = arr[j][i].number;
             arr[j][i].number = res[i][j].number;
             res[i][j].number = temp;
@@ -168,11 +168,11 @@ function changeDirection(arr) {
 
 // 将数组排序，若前面为空，补位
 function sort(arr) {
-    var temp, _needSort = false;
+    let temp, _needSort = false;
 
-    for(var i = 0; i < arr.length; i++) {
+    for(let i = 0; i < arr.length; i++) {
         if(arr[i].number === 0) {
-            for(var j = i; j < arr.length; j++) {
+            for(let j = i; j < arr.length; j++) {
                 if(arr[j].number !== 0) {
                     temp = arr[i].number;
                     arr[i].number = arr[j].number;
@@ -189,10 +189,10 @@ function sort(arr) {
 
 // 合并动画
 function animation(obj, arr) {
-    var _obj = JSON.parse(JSON.stringify(obj));
+    let _obj = JSON.parse(JSON.stringify(obj));
     new Promise(function(resolve) {
-        var timer = setInterval(() => {
-            var cxt = obj.cxt;
+        let timer = setInterval(() => {
+            let cxt = obj.cxt;
             cxt.clearRect(obj.left - 5, obj.top - 5, obj.right - obj.left + 10, obj.bottom - obj.top + 10);
             obj.left--;
             obj.top--;
@@ -219,10 +219,10 @@ function animation(obj, arr) {
 
 // 合并
 function merge(col) {
-    var _canMerge = false;
+    let _canMerge = false;
 
-    for(var i = 0; i < col.length; i++) {
-        var _isEqual = false;
+    for(let i = 0; i < col.length; i++) {
+        let _isEqual = false;
         _isEqual = col[i + 1] && (col[i].number === col[i + 1].number) && col[i].number;
         if(_isEqual) {
             col[i].number *= 2;
@@ -265,7 +265,7 @@ function draw(arr) {
 
 // 更新canvas 画布内容
 function update (arr) {
-    var cxt = arr[0][0].cxt;
+    let cxt = arr[0][0].cxt;
     cxt.clearRect(0, 0, 520, 520);
     renderBg(cxt);
 
@@ -278,7 +278,7 @@ function update (arr) {
 
 // 画单个方格
 function drawCell(cellObj) {
-    var cxt = cellObj.cxt;
+    let cxt = cellObj.cxt;
     cellObj.color = getNumberBackgroundColor(cellObj.number);
 
     cxt.lineWidth = 10;
@@ -307,7 +307,7 @@ function drawCell(cellObj) {
 
 // 根据 number 获取对应的背景颜色
 function getNumberBackgroundColor(number) {
-    var color = 'black';
+    let color = 'black';
     switch (number) {
 
     case 2:
@@ -374,8 +374,8 @@ function getNumberSize(number) {
 
 // 初始化二维数组
 function init(arr) {
-    var first = Math.floor(Math.random() * 4);
-    var second = Math.floor(Math.random() * 4);
+    let first = Math.floor(Math.random() * 4);
+    let second = Math.floor(Math.random() * 4);
     if(arr[first][second].number === 0) {
         arr[first][second].number = Math.random() > 0.9 ? 4 : 2;
     } else {
@@ -385,11 +385,11 @@ function init(arr) {
 
 // 判断二维数组是否全部占满
 function judgeFull(arr) {
-    var _isFull = true;
+    let _isFull = true;
 
     outter:
-    for(var i = 0; i < arr.length; i++) {
-        for(var j = 0; j < arr[i].length; j++) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
             if(arr[i][j].number === 0) {
                 _isFull = false;
                 break outter;
@@ -402,15 +402,15 @@ function judgeFull(arr) {
 
 // 判断游戏结束
 function isOver(arr) {
-    var _isOver = true;
+    let _isOver = true;
 
     if(!judgeFull(arr)) return;
 
     outter:
-    for(var i = 0; i < arr.length; i++) {
-        for(var j = 0; j < arr[i].length; j++) {
-            var _equalTop = arr[i - 1] && (arr[i - 1][j].number === arr[i][j].number);
-            var _equalLeft = arr[i][j - 1] && (arr[i][j - 1].number === arr[i][j].number);
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            let _equalTop = arr[i - 1] && (arr[i - 1][j].number === arr[i][j].number);
+            let _equalLeft = arr[i][j - 1] && (arr[i][j - 1].number === arr[i][j].number);
 
             if(_equalLeft || _equalTop) {
                 _isOver = false;
@@ -428,8 +428,8 @@ function isOver(arr) {
 
 // 重新开始
 export function restart(arr) {
-    for(var i = 0; i < arr.length; i++) {
-        for(var j = 0; j < arr[i].length; j++) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
             arr[i][j].number = 0;
         }
     }
